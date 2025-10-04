@@ -1,0 +1,90 @@
+openapi: 3.0.0
+info:
+  title: Upload Video Microservice API
+  version: 1.0.0
+  description: API for uploading videos and managing video metadata
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /videos:
+    get:
+      summary: Get all uploaded videos
+      responses:
+        '501':
+          description: NOT IMPLEMENTED
+    post:
+      summary: Upload a new video
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The video file to upload
+                courseId:
+                  type: string
+                courseName:
+                  type: string
+                professorName:
+                  type: string
+                videoTitle:
+                  type: string
+      responses:
+        '501':
+          description: NOT IMPLEMENTED
+
+  /videos/{id}:
+    get:
+      summary: Get details of a video by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '501':
+          description: NOT IMPLEMENTED
+    put:
+      summary: Update video metadata by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseId:
+                  type: string
+                courseName:
+                  type: string
+                professorName:
+                  type: string
+                videoTitle:
+                  type: string
+      responses:
+        '501':
+          description: NOT IMPLEMENTED
+    delete:
+      summary: Delete a video by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '501':
+          description: NOT IMPLEMENTED

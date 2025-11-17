@@ -1,5 +1,6 @@
-from fastapi import APIRouter, UploadFile, Form, status
+from fastapi import APIRouter, UploadFile, Form, status, HTTPException
 from src.models.video_model import VideoUpdate
+from src.utils.generateSignedUrl import create_gcs_signed_upload_url, generate_video_id
 
 router = APIRouter()
 
@@ -33,3 +34,25 @@ async def update_video(id: str):
 @router.delete("/{id}", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
 async def delete_video(id: str):
     return {"detail": "NOT IMPLEMENTED"}
+
+# To start upload
+@router.post("/start_upload", status_code=status.HTTP_200_OK, responses={501: {"description": "NOT IMPLEMENTED"}, 200: {"description": "Upload Started"}})
+async def upload_video(
+    # file: UploadFile,
+    courseId: str = Form(...),
+    courseName: str = Form(...),
+    emailId: str = Form(...),
+    videoTitle: str = Form(...)
+):
+    try:
+        video_id = generate_video_id()
+        signed_url = create_gcs_signed_upload_url(
+            bucket_name="columbiastream_video_store",
+            file_extension='.mp4',
+        )
+        print("\n✅ SIGNED URL GENERATED SUCCESSFULLY:")
+        print(signed_url)
+        
+        return {"detail": "NOT IMPLEMENTED 1", courseId: courseId}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

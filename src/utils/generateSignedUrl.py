@@ -32,6 +32,7 @@ def create_gcs_signed_upload_url(
     # We use a /raw/ prefix to keep the *original* file separate from the *encoded* files.
     # The file name includes the video_id for easy tracking later.
     blob_name = f"raw/{video_id}/upload_{video_id}{file_extension}"
+    raw_gcs_path = f"gs://{bucket_name}/{blob_name}"
 
     # 2. Get a reference to the specific bucket.
     bucket = storage_client.bucket(bucket_name)
@@ -52,7 +53,7 @@ def create_gcs_signed_upload_url(
         # content_type=mime_type,
     )
 
-    return url
+    return url, raw_gcs_path
 
 # --- Example Usage (in your Upload Microservice logic) ---
 # bucket_name = "columbiastream_video_storage"

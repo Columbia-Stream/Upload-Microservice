@@ -7,6 +7,7 @@ load_dotenv()
 PROJECT_ID = os.getenv("PROJECT_ID")
 # SECRET_ID = os.getenv("SECRET_ID")
 FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY")
+VIDEO_DOMAIN = os.getenv("VIDEO_DOMAIN")
 
 
 # App Settings

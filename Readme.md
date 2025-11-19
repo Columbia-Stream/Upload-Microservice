@@ -1,12 +1,6 @@
 # Upload Video Microservice
 ## To Start Service Locally
 
-python3 -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-gcloud auth application-default login --impersonate-service-account=upload-service@qualified-root-474022-u3.iam.gserviceaccount.com   
-<!-- To update cred - gcloud auth login --update-adc -->
-python3 -m http.server 3000 to test frontend
-
-./cloud-sql-proxy qualified-root-474022-u3:us-central1:upload-db-cloud-instance --port=3306 For proxy
 
 This microservice handles **video file uploads** and manages **video metadata** such as course ID, course name, professor name, and video title.  
 It is designed using **FastAPI** and follows an **API-first approach** with a Swagger/OpenAPI definition.

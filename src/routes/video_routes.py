@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, Form, status, HTTPException
-from src.models.video_model import VideoUpdate
+from src.models.video_model import VideoUpdate, VideoUpload
 from src.utils.generateSignedUrl import create_gcs_signed_upload_url, generate_video_id
 import httpx
 from src.utils.config import VIDEO_DOMAIN
@@ -40,12 +40,12 @@ async def delete_video(id: str):
 # To start upload
 @router.post("/start_upload", status_code=status.HTTP_200_OK, responses={501: {"description": "NOT IMPLEMENTED"}, 200: {"description": "Upload Started"}})
 async def upload_video(
-    # file: UploadFile,
-    offering_id: int = Form(...),
-    prof_uni: str = Form(...),
-    videoTitle: str = Form(...)
+    VideoUploadPayload: VideoUpload
 ):
     try:
+        offering_id = VideoUploadPayload.offering_id
+        prof_uni = VideoUploadPayload.prof_uni
+        videoTitle = VideoUploadPayload.videoTitle
         video_id = generate_video_id()
         url, path = create_gcs_signed_upload_url(
             bucket_name="columbiastream_video_store",

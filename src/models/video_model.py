@@ -16,3 +16,9 @@ class VideoUpdate(BaseModel):
     courseName: Optional[str]
     professorName: Optional[str]
     videoTitle: Optional[str]
+
+class VideoUpload(BaseModel):
+    offering_id: int
+    prof_uni: str
+    videoTitle: str
+

@@ -38,7 +38,7 @@ async def delete_video(id: str):
     return {"detail": "NOT IMPLEMENTED"}
 
 # To start upload
-@router.post("/start_upload", status_code=status.HTTP_200_OK, responses={501: {"description": "NOT IMPLEMENTED"}, 200: {"description": "Upload Started"}})
+@router.post("/start_upload", status_code=status.HTTP_202_ACCEPTED, responses={202: {"description": "Upload Initiated"}})
 async def upload_video(
     VideoUploadPayload: VideoUpload
 ):

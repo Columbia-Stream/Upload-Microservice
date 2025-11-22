@@ -3,6 +3,8 @@ from src.models.video_model import VideoUpdate, VideoUpload
 from src.utils.generateSignedUrl import create_gcs_signed_upload_url, generate_video_id
 import httpx
 from src.utils.config import VIDEO_DOMAIN
+import threading
+from src.utils.metadata_tasks import send_metadata_to_composite
 
 router = APIRouter()
 
@@ -61,16 +63,22 @@ async def upload_video(
             "prof_uni": prof_uni,
             "title": videoTitle
         }
-        with httpx.Client() as client:
-            print(f"Calling Composite Service at: {VIDEO_DOMAIN}")
-            response = client.post(f"{VIDEO_DOMAIN}/videos/metadata", json=db_payload, timeout=10.0)
+        # with httpx.Client() as client:
+        #     print(f"Calling Composite Service at: {VIDEO_DOMAIN}")
+        #     response = client.post(f"{VIDEO_DOMAIN}/videos/metadata", json=db_payload, timeout=10.0)
             
-            # Check if the Composite Service successfully inserted the data
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=502, # Bad Gateway
-                    detail=f"Failed to store metadata: {response.text}"
-                )
+        #     # Check if the Composite Service successfully inserted the data
+        #     if response.status_code != 200:
+        #         raise HTTPException(
+        #             status_code=502, # Bad Gateway
+        #             detail=f"Failed to store metadata: {response.text}"
+        #         )
+        t = threading.Thread(
+            target=send_metadata_to_composite,
+            args=(db_payload,),
+            daemon=True
+        )
+        t.start()
         
         return {"detail": "Success", "signed_url": url, "video_id": video_id}
     except httpx.ConnectError:

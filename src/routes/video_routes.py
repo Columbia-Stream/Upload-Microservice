@@ -9,9 +9,9 @@ from src.utils.metadata_tasks import send_metadata_to_composite
 router = APIRouter()
 
 # GET /videos
-@router.get("/", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
-async def get_videos():
-    return {"detail": "NOT IMPLEMENTED"}
+# @router.get("/", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
+# async def get_videos():
+#     return {"detail": "NOT IMPLEMENTED"}
 
 # POST /videos
 @router.post("/", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
@@ -81,6 +81,33 @@ async def upload_video(
         t.start()
         
         return {"detail": "Success", "signed_url": url, "video_id": video_id}
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=503, # Service Unavailable
+            detail=f"Cannot connect to Composite Service at {VIDEO_DOMAIN}."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# To get offerings
+@router.post("/offer", status_code=status.HTTP_200_OK, responses={200: {"description": "Offerings Retrieved"}})
+async def get_offerings():
+    try:
+        
+        with httpx.Client() as client:
+            print(f"Calling Composite Service at: {VIDEO_DOMAIN}")
+            response = client.post(f"{VIDEO_DOMAIN}/videos/offer", timeout=10.0)
+            
+            # Check if the Composite Service successfully inserted the data
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=502, # Bad Gateway
+                    detail=f"Failed to fetch offerings: {response.text}"
+                )
+        
+        
+        return response.json()
     except httpx.ConnectError:
         raise HTTPException(
             status_code=503, # Service Unavailable

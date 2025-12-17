@@ -8,36 +8,7 @@ from src.utils.metadata_tasks import send_metadata_to_composite
 
 router = APIRouter()
 
-# GET /videos
-# @router.get("/", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
-# async def get_videos():
-#     return {"detail": "NOT IMPLEMENTED"}
 
-# POST /videos
-@router.post("/", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
-async def upload_video(
-    file: UploadFile,
-    courseId: str = Form(...),
-    courseName: str = Form(...),
-    professorName: str = Form(...),
-    videoTitle: str = Form(...)
-):
-    return {"detail": "NOT IMPLEMENTED"}
-
-# GET /videos/{id}
-@router.get("/{id}", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
-async def get_video(id: str):
-    return {"detail": "NOT IMPLEMENTED"}
-
-# PUT /videos/{id}
-@router.put("/{id}", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
-async def update_video(id: str):
-    return {"detail": "NOT IMPLEMENTED"}
-
-# DELETE /videos/{id}
-@router.delete("/{id}", status_code=status.HTTP_501_NOT_IMPLEMENTED, responses={501: {"description": "NOT IMPLEMENTED"}})
-async def delete_video(id: str):
-    return {"detail": "NOT IMPLEMENTED"}
 
 # To start upload
 @router.post("/start_upload", status_code=status.HTTP_202_ACCEPTED, responses={202: {"description": "Upload Initiated"}})
@@ -104,6 +75,60 @@ async def get_offerings():
                 raise HTTPException(
                     status_code=502, # Bad Gateway
                     detail=f"Failed to fetch offerings: {response.text}"
+                )
+        
+        
+        return response.json()
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=503, # Service Unavailable
+            detail=f"Cannot connect to Composite Service at {VIDEO_DOMAIN}."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# To get courses
+@router.post("/courses", status_code=status.HTTP_200_OK, responses={200: {"description": "Courses Retrieved"}})
+async def get_courses():
+    try:
+        
+        with httpx.Client() as client:
+            print(f"Calling Composite Service at: {VIDEO_DOMAIN}")
+            response = client.post(f"{VIDEO_DOMAIN}/videos/courses", timeout=10.0)
+            
+            # Check if the Composite Service successfully inserted the data
+            print(f"DEBUG: Response status code: {response}")
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=502, # Bad Gateway
+                    detail=f"Failed to fetch courses: {response.text}"
+                )
+        
+        
+        return response.json()
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=503, # Service Unavailable
+            detail=f"Cannot connect to Composite Service at {VIDEO_DOMAIN}."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/prof_offer/{prof_uni}", status_code=status.HTTP_200_OK, responses={200: {"description": "Prof Offerings Retrieved"}})
+async def get_prof_offerings(prof_uni: str):
+    try:
+        
+        with httpx.Client() as client:
+            print(f"Calling Composite Service at: {VIDEO_DOMAIN}")
+            response = client.post(f"{VIDEO_DOMAIN}/videos/prof_offer/{prof_uni}", timeout=10.0)
+            
+            # Check if the Composite Service successfully inserted the data
+            print(f"DEBUG: Response status code: {response}")
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=502, # Bad Gateway
+                    detail=f"Failed to fetch prof_offerings: {response.text}"
                 )
         
         

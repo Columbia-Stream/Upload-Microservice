@@ -3,6 +3,7 @@ from datetime import timedelta
 import uuid
 import google.auth
 from google.auth.transport import requests as google_requests
+import requests
 
 
 def generate_video_id():
@@ -30,13 +31,23 @@ def create_gcs_signed_upload_url(
         The secure, time-limited signed URL string.
     """
     credentials, project_id = google.auth.default()
+    request = google_requests.Request()
+    credentials.refresh(request)
 
-    # 2. REFRESH CREDENTIALS (CRITICAL STEP)
-    # On Cloud Run, the credentials object often starts with 'service_account_email' as None.
-    # We must refresh them to populate the email and the token.
-    if not credentials.service_account_email:
-        request = google_requests.Request()
-        credentials.refresh(request)
+    service_account_email = credentials.service_account_email
+    if service_account_email == 'default':
+        print("DEBUG: Resolving 'default' service account alias...")
+        try:
+            # We explicitly ask the Cloud Run Metadata Server for the real email
+            metadata_url = "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email"
+            metadata_headers = {"Metadata-Flavor": "Google"}
+            response = requests.get(metadata_url, headers=metadata_headers)
+            response.raise_for_status()
+            service_account_email = response.text
+            print(f"DEBUG: Resolved Service Account to: {service_account_email}")
+        except Exception as e:
+            print(f"ERROR: Could not resolve service account email: {e}")
+            raise
     # storage_client = storage.Client(project="qualified-root-474022-u3")
     storage_client = storage.Client(credentials=credentials, project=project_id)
     
@@ -51,7 +62,7 @@ def create_gcs_signed_upload_url(
     
     # 3. Get a reference to the specific file path (blob).
     blob = bucket.blob(blob_name)
-    print(f"DEBUG: Signing as {credentials.service_account_email}")
+    print(f"DEBUG: Signing as {service_account_email}")
 
     # 4. Define the security parameters for the signed URL.
     url = blob.generate_signed_url(
@@ -64,7 +75,7 @@ def create_gcs_signed_upload_url(
         # a file with the specific Content-Type expected (e.g., a video file).
         content_type="video/quicktime", #For testing
         # content_type=mime_type,
-        service_account_email=credentials.service_account_email, 
+        service_account_email=service_account_email, 
         access_token=credentials.token
     )
 

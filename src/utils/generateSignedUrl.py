@@ -1,6 +1,9 @@
 from google.cloud import storage
 from datetime import timedelta
 import uuid
+import google.auth
+from google.auth.transport import requests as google_requests
+
 
 def generate_video_id():
     # Generate a Version 4 (random) UUID and return it as a string
@@ -26,7 +29,16 @@ def create_gcs_signed_upload_url(
     Returns:
         The secure, time-limited signed URL string.
     """
-    storage_client = storage.Client(project="qualified-root-474022-u3")
+    credentials, project_id = google.auth.default()
+
+    # 2. REFRESH CREDENTIALS (CRITICAL STEP)
+    # On Cloud Run, the credentials object often starts with 'service_account_email' as None.
+    # We must refresh them to populate the email and the token.
+    if not credentials.service_account_email:
+        request = google_requests.Request()
+        credentials.refresh(request)
+    # storage_client = storage.Client(project="qualified-root-474022-u3")
+    storage_client = storage.Client(credentials=credentials, project=project_id)
     
     # 1. Define the exact path (Blob Name) where the raw file will be stored.
     # We use a /raw/ prefix to keep the *original* file separate from the *encoded* files.
@@ -39,6 +51,7 @@ def create_gcs_signed_upload_url(
     
     # 3. Get a reference to the specific file path (blob).
     blob = bucket.blob(blob_name)
+    print(f"DEBUG: Signing as {credentials.service_account_email}")
 
     # 4. Define the security parameters for the signed URL.
     url = blob.generate_signed_url(
@@ -49,8 +62,10 @@ def create_gcs_signed_upload_url(
         method="PUT",
         # This is CRITICAL for security: it ensures the client can ONLY upload
         # a file with the specific Content-Type expected (e.g., a video file).
-        content_type="video/quicktime" #For testing
+        content_type="video/quicktime", #For testing
         # content_type=mime_type,
+        service_account_email=credentials.service_account_email, 
+        access_token=credentials.token
     )
 
     return url, raw_gcs_path
